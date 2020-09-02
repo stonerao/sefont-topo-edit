@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="UTF-8" />
+	<title>template</title>
+	<script src="/libs/jquery.js"></script>
+	<script src="/libs/tween.js"></script>
+	<script src="/libs/stats.min.js"></script>
+	<script src="/libs/three_r119.js"></script>
+	<script src="js/assetsControls.js"></script>
+	<script src="js/assetsFbx.js"></script>
+
+	<script src="/libs/vue.min.js"></script>
+
+	<!-- <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css"> -->
+	<link rel="stylesheet" href="./style/element.css" />
+	<link rel="stylesheet" href="./style/index.css" />
+	<style type="text/css"></style>
+	<script>
+		var assetsUrl = "./images/"
+		var config = {
+			stats: true, //是否显示左上角的性能监测  默认false
+			loading: true, //是否显示 loading ， 默认false
+			scene: {
+				offset: [0, 0, 0],
+			},
+			background: {
+				color: "#1E1F22",
+				opacity: 1.0,
+			}, //背景色和透明度
+			camera: {
+				position: [0, 150, 344],
+			}, //相机视角和位置
+			controls: {
+				//控制器
+				enablePan: true,
+				enableZoom: true,
+				enableRotate: true,
+			},
+			texture: {
+				baseMap: './images/adr.png'
+			},
+		}
+		var INT;
+		function start() {
+			INT = new Editor()
+			INT.init("editor", config) //初始化
+			INT.render()
+			window.scene = INT.scene;
+		}
+	</script>
+</head>
+
+<body onload="start();">
+	<div id="editor"></div>
+	<div id="app">
+		<input type="file" name="file" id="uploadModel" @change="uploadModel" hidden>
+		<div class="features">
+			<div class="features-btns">
+				<div v-if="featuresType==3">
+					<el-select style="width: 140px;" v-model="modelsVal" placeholder="请选择" size="mini">
+						<el-option size="mini" v-for="item in models" :key="item.id" :label="item.name" :value="item.url">
+						</el-option>
+					</el-select>
+					<el-button size="mini" @click="sub">确定</el-button>
+				</div>
+				<div v-if="featuresType==2">
+					<!-- <el-button size="mini" @click="viewLink">查看线条</el-button> -->
+					<el-button size="mini" @click="createLink">生成</el-button>
+				</div>
+				<div v-if="featuresType==1">
+					<el-button size="mini" @click="importEvent">导入</el-button>
+					<el-button size="mini" @click="exportsEvent">导出</el-button>
+					<el-button size="mini"><label for="uploadModel">上传模型</label></el-button>
+				</div>
+
+			</div>
+			<div class="features-btns">
+				<el-radio-group v-model="featuresType" size="mini">
+					<el-radio-button label="1">节点</el-radio-button>
+					<el-radio-button label="2">连线</el-radio-button>
+					<el-radio-button label="3">模型</el-radio-button>
+				</el-radio-group>
+			</div>
+		</div>
+		<div class="edit-right">
+			<div class="edit-top">
+				<div class="e-t-tabs">
+					<span class="e-t-item" :style="`color:${nodeStyle == 1 ? '#ff0000':''}`"
+						@click="nodeStyle = 1">节点列表</span>
+					<span class="e-t-item" :style="`color:${nodeStyle == 2 ? '#ff0000':''}`"
+						@click="nodeStyle = 2">连线列表</span>
+					<span class="e-t-item" :style="`color:${nodeStyle == 3 ? '#ff0000':''}`"
+						@click="nodeStyle = 3">节点类型</span>
+				</div>
+				<div class="e-d-main">
+					<!-- 节点列表 -->
+					<div class="full" v-if="nodeStyle === 1">
+						<ul class="items-list">
+							<li class="item-list" :style="`color:${activeNode==item.id?'#ff0000':''}`"
+								v-for="(item, index) in nodeList" :key="item.id">
+								<span @click="clicNode(item)">{{item.name}}</span>
+								<i class="el-icon-delete" @click="deleteNode(item)"></i>
+							</li>
+						</ul>
+					</div>
+					<!-- 连线列表 -->
+					<div class="full" v-if="nodeStyle === 2">
+						<ul class="items-list">
+							<li class="item-list" v-for="(item, index) in linkList" :key="index">
+								<span :style="`color:${activeLink == item.id ? '#ff0000':''}`" @click="clickLine(item)">
+									{{item.src}}
+									-
+									{{item.dst}}</span>
+								<i class="el-icon-delete" @click="deleteLine(item.id)"></i>
+							</li>
+						</ul>
+
+					</div>
+					<!-- 节点类型 -->
+					<div class="full" v-if="nodeStyle === 3">
+						<ul class="items-list">
+							<li class="item-list" v-for="(item, index) in typeList" draggable="true" :key="index"
+								@dragstart="nodeTypeDrap(item, $event)">
+								{{item.name}}
+							</li>
+						</ul>
+					</div>
+				</div>
+			</div>
+			<div class="edit-bottom">
+				<div class="e-t-tabs">
+					<span class="e-t-item" @click="childStyle = 1"
+						:style="`color:${childStyle == 1 ? '#ff0000':''}`">节点</span>
+					<span class="e-t-item" @click="childStyle = 2"
+						:style="`color:${childStyle == 2 ? '#ff0000':''}`">连线</span>
+					<span class="e-t-item" @click="childStyle = 3"
+						:style="`color:${childStyle == 3 ? '#ff0000':''}`">效果</span>
+					<span class="e-t-item" @click="childStyle = 4"
+						:style="`color:${childStyle == 4 ? '#ff0000':''}`">场景</span>
+				</div>
+				<div class="e-d-main">
+					<!-- 节点 -->
+					<div class="full list-items" v-if="childStyle === 1">
+						<div class="list-item">
+							<span class="list-item-name">Type</span>
+							<span>{{s_node.type}}</span>
+						</div>
+						<div class="list-item">
+							<span class="list-item-name">Id</span>
+							<span>{{s_node.id}}</span>
+						</div>
+						<div class="list-item">
+							<span class="list-item-name">Name</span>
+							<input @change="updateNode" type="text" class="item-inp-name" v-model="s_node.name">
+						</div>
+						<div class="list-item">
+							<span class="list-item-name">Position</span>
+							<div>
+								<input @change="updateNode" type="text" class="item-inp" v-model="s_node.position.x">
+								<input @change="updateNode" type="text" class="item-inp" v-model="s_node.position.y">
+								<input @change="updateNode" type="text" class="item-inp" v-model="s_node.position.z">
+							</div>
+						</div>
+						<div class="list-item">
+							<span class="list-item-name">Scale</span>
+							<div>
+								<input @change="updateNode" type="text" class="item-inp" v-model="s_node.scale.x">
+								<input @change="updateNode" type="text" class="item-inp" v-model="s_node.scale.y">
+								<input @change="updateNode" type="text" class="item-inp" v-model="s_node.scale.z">
+							</div>
+						</div>
+						<div class="list-item">
+							<span class="list-item-name">Visble</span>
+							<span>
+								<el-checkbox @change="checkVisibe" v-model="s_node.visible"></el-checkbox>
+							</span>
+						</div>
+						<div class="list-item">
+							<span class="list-item-name">User Data</span>
+							<div>
+								<el-input type="textarea" :autosize="{ minRows: 2, maxRows: 4}" placeholder="请输入内容"
+									v-model="s_node.userData">
+							</div>
+						</div>
+					</div>
+					<!-- 连线 -->
+					<div class="full" v-if="childStyle === 2">
+						 
+						<ul class="items-list">
+							<li class="item-list">
+								<span  class="list-item-name">线条类型</span>
+								<el-select v-model="LineType" placeholder="请选择" size="mini">
+									<el-option size="mini" v-for="item in LineTypes" :key="item.name" :label="item.name" :value="item.name">
+									</el-option>
+								</el-select>
+							</li>
+							<li class="item-list" v-for="(item,index) in editLineData.data" :key="index">
+								<span class="list-item-name">
+									{{item.name || "line"}} - {{index + 1}}
+								</span>
+								<div style="display: inline-block;">
+									<input type="number" class="item-inp" v-model="item.position.x"
+										@change="editLineChange(item)">
+									<input type="number" class="item-inp" v-model="item.position.y"
+										@change="editLineChange(item)">
+									<input type="number" class="item-inp" v-model="item.position.z"
+										@change="editLineChange(item)">
+								</div>
+							</li>
+						</ul>
+					</div>
+					<!-- 效果 -->
+					<div class="full list-items" v-if="childStyle === 3">
+
+					</div>
+					<!-- 场景 -->
+					<div class="full list-items" v-if="childStyle === 4">
+						<div class="list-item">
+							<span class="list-item-name">节点高度</span>
+							<input v-model="INT_state.nodeHeight">
+						</div>
+						<div class="list-item">
+							<span class="list-item-name">节点大小</span>
+							<input v-model="INT_state.nodeSize">
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+
+</html>
+
+<script src="js/element.js"></script>
+<script src="js/model.js"></script>
+<script src="js/index.js"></script>
+<script src="js/Initialize.js"></script>

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script src="/libs/jquery.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <input type="file" name="file" id="file">
+    <script>
+        $("#file").on("change",function(e){
+            var formData = new FormData();
+            formData.append("file", e.target.files[0]);
+            $.ajax({
+                type: "POST", // 数据提交类型
+                url: "/zips/upload", // 发送地址
+                data: formData, //发送数据
+                // async: true, // 是否异步
+                processData: false, //processData 默认为false，当设置为true的时候,jquery ajax 提交的时候不会序列化 data，而是直接使用data
+                contentType: false, //
+                success: function (data) {
+                    if (data.code == 200) {
+                        if (data.url) {
+                             setTimeout(() => {
+                                window.open(data.url)
+                            }, 1000);
+                        }
+                    }
+                }
+            });
+        })
+
+    </script>
+</body>
+</html>

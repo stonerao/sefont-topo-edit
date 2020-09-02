@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="UTF-8" />
+	<title>template</title>
+	<script src="/libs/jquery.js"></script>
+	<script src="/libs/tween.js"></script>
+	<script src="/libs/stats.min.js"></script>
+	<script src="/libs/three_r118.min.js"></script>
+	<script src="js/assetsControls.js"></script>
+	<script src="js/assetsFbx.js"></script>
+	<script src="/libs/TGALoader.js"></script>
+	<script src="/libs/dat.gui.min.js"></script>
+
+	<script src="/libs/vue.min.js"></script>
+
+	<!-- <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css"> -->
+	<link rel="stylesheet" href="./style/element.css" />
+	<link rel="stylesheet" href="./style/index.css" />
+	<style type="text/css"></style>
+	<script>
+		var assetsUrl = "./images/"
+		var config = {
+			stats: true, //是否显示左上角的性能监测  默认false
+			loading: true, //是否显示 loading ， 默认false
+			scene: {
+				offset: [0, 0, 0],
+			},
+			background: {
+				color: "#1E1F22",
+				opacity: 1.0,
+			}, //背景色和透明度
+			camera: {
+				position: [0, 150, 344],
+			}, //相机视角和位置
+			controls: {
+				//控制器
+				enablePan: true,
+				enableZoom: true,
+				enableRotate: true,
+			},
+			texture: {
+				baseMap: './images/adr.png'
+			},
+		}
+		var INT;
+		function start() {
+			INT = new Editor()
+			INT.init("editor", config) //初始化
+			INT.render()
+		}
+	</script>
+</head>
+
+<body onload="start();">
+	<div id="editor"></div>
+	<div id="app">
+		<input type="file" name="file" id="uploadModel" @change="uploadModel" hidden>
+		<div class="features">
+			<div class="features-btns">
+				<el-select style="width: 140px;" v-model="modelsVal" placeholder="请选择" size="mini">
+					<el-option size="mini" v-for="item in models" :key="item.id" :label="item.name" :value="item.url">
+					</el-option>
+				</el-select>
+				<el-button size="mini" @click="sub">确定</el-button>
+				<!-- <el-button size="mini" @click="uploadDf">默认模型</el-button> -->
+				<el-button size="mini"><label for="uploadModel">上传模型</label></el-button>
+			</div> 
+		</div>
+		 
+	</div>
+</body>
+
+</html>
+
+<script src="js/element.js"></script>
+<script src="js/model.js"></script>
+<script src="js/index.js"></script>
+<script src="js/Initialize.js"></script>

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="UTF-8">
+	<title>四方伟业平面粒子飞线工具</title>
+	<script src="/libs/jquery.js"></script>
+	<script src="/libs/tween.js"></script>
+	<script src="/libs/stats.min.js"></script>
+	<script src="/libs/three_r98.js"></script>
+	<script src="/libs/dat.gui.min.js"></script>
+	<script src="./libs/vue.min.js"></script>
+	<script src="js/assetsControls.js"></script>
+	<script src="js/element.js"></script>
+	<script src="js/Initialize.js"></script>
+	<link rel="stylesheet" href="./style/element.css">
+	<link rel="stylesheet" href="./style/index.css">
+	<style type="text/css">
+		html {
+			width: 100%;
+			height: 100%;
+		}
+
+		body {
+			margin: 0;
+			background: #ffffff;
+			width: 100%;
+			height: 100%;
+		}
+
+		div#canvas-frame {
+			width: 100%;
+			height: 100%;
+			background: #1E1F22;
+			margin: 0;
+			position: relative;
+		}
+	</style>
+	<script>
+		var assetsUrl = './images/';
+		var height = window.innerHeight;
+		var width = window.innerWidth;
+		var config = {
+			stats: false, //是否显示左上角的性能监测  默认false
+			loading: true, //是否显示 loading ， 默认false
+			scene: {
+				offset: [0, 0, 0]
+			},
+			background: {
+				color: '#1E1F22',
+				opacity: 1.0,
+			}, //背景色和透明度
+			camera: {
+				width: width,
+				height: height
+			}, //相机视角和位置
+			controls: { //控制器
+				enablePan: true,
+				enableZoom: true,
+				enableRotate: false,
+			},
+			texture: {
+				point: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAYAAADDPmHLAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyZpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuNi1jMTM4IDc5LjE1OTgyNCwgMjAxNi8wOS8xNC0wMTowOTowMSAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6NjQyNzYxNDJCRjk0MTFFNzhERkNFNDJCNUZGODU5MzAiIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6NjQyNzYxNDFCRjk0MTFFNzhERkNFNDJCNUZGODU5MzAiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENDIDIwMTcgKFdpbmRvd3MpIj4gPHhtcE1NOkRlcml2ZWRGcm9tIHN0UmVmOmluc3RhbmNlSUQ9InhtcC5paWQ6RkMwMjg0RkRCRjZFMTFFNzgzQUY5RkExRjBGOENEQTMiIHN0UmVmOmRvY3VtZW50SUQ9InhtcC5kaWQ6RkMwMjg0RkVCRjZFMTFFNzgzQUY5RkExRjBGOENEQTMiLz4gPC9yZGY6RGVzY3JpcHRpb24+IDwvcmRmOlJERj4gPC94OnhtcG1ldGE+IDw/eHBhY2tldCBlbmQ9InIiPz7DwHPXAAARBklEQVR42uxd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'
+			}
+		};
+		var INT;
+		function start() {
+			$('#canvas-frame').css({
+				width: width,
+				height: height
+			})
+			INT = new swiperInitialize();
+			INT.init('canvas-frame', config); //初始化
+			INT.render();
+
+
+		}
+	</script>
+</head>
+
+<body onload="start();">
+	<div id="canvas-frame"></div>
+	<div id="app">
+		<div class="lines">
+			<span>线条列表</span>
+			<ul class="lines-items">
+				<li :style="{'color':active==item.id?'#ff0000':''}" v-for='item in lines' :key="item.id"
+					@click='selectLine(item)'>
+					<span>{{item.name}}</span>
+					<span @click='delet(item)'>×</span>
+				</li>
+			</ul>
+			<el-button @click="exports" size="mini">导出</el-button>
+			<el-button @click="imports" size="mini">导入</el-button>
+			<el-button @click="restore" size="mini">恢复</el-button>
+			<!-- <el-button @click="viewLine" size="mini">查看效果</el-button> -->
+		</div>
+
+		<el-dialog title="提示" :visible.sync="importVisible" width="30%" :before-close="importBtn">
+			<el-input type="textarea" :autosize="{ minRows: 4, maxRows: 6}" placeholder="请输入内容" v-model="importText">
+			</el-input>
+			<span slot="footer" class="dialog-footer">
+				<el-button @click="importVisible = false">取 消</el-button>
+				<el-button type="primary" @click="importsData">确 定</el-button>
+			</span>
+		</el-dialog>
+		<div class="control">
+			<span style="cursor: pointer;"><label for="input1">点击选择背景图</label> </span>
+			<span style="cursor: pointer;"><label for="filteImg">选择粒子图</label> </span>
+			<a target="_blank" href="video.html" style="color:#fff">操作视频</a>
+			<input class="input1" type="file" name="file" id="input1" @change='fileImg' accept="image/*" hidden>
+			<input class="input1" type="file" name="file" id="filteImg" @change='filePoint' accept="image/*" hidden
+				placeholder="上传点的样式">
+			<!-- 	
+			<span>样式</span>
+			<select name="" id="" v-model="style">
+				<option :value="item" v-for='item in styles'>{{item}}</option>
+			</select>
+			<span>速度</span>
+			<input type="number" v-model='speed' class="input">
+			<span>大小</span>
+			<input type="number" v-model='size' class="input">
+			<span>颜色</span>
+			<input v-model='color' class="input1"> -->
+
+		</div>
+
+	</div>
+</body>
+<script src="js/index.js"></script>
+
+</html>

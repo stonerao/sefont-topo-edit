@@ -1,0 +1,130 @@
+/** @format */
+
+html {
+	width: 100%;
+	height: 100%;
+}
+
+body {
+	margin: 0;
+	background: #ffffff;
+	width: 100%;
+	height: 100%;
+}
+
+div#editor {
+	position: absolute;
+	right: 320px;
+	bottom: 0;
+	left: 0;
+	top: 0;
+	background: #1e1f22;
+	margin: 0;
+}
+.full {
+	position: absolute;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	overflow: auto;
+}
+.edit-right {
+	position: absolute;
+	right: 0;
+	bottom: 0;
+	width: 320px;
+	top: 0;
+	background: #fff;
+	border-left: 1px solid #ededed;
+}
+.edit-top {
+	position: absolute;
+	right: 0;
+	bottom: 40%;
+	left: 0;
+	top: 0;
+	border-bottom: 1px solid #ededed;
+}
+.edit-bottom {
+	position: absolute;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	top: 60%;
+}
+.e-t-tabs {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 35px;
+	display: flex;
+	border-bottom: 1px solid #ededed;
+}
+.item-list {
+	list-style: none;
+	cursor: pointer;
+	line-height: 30px;
+	font-size: 12px;
+}
+.items-list{
+	padding:10px;
+	margin:0;
+
+}
+.e-t-tabs .e-t-item {
+	padding: 5px 10px;
+	cursor: pointer;
+	transition: all 0.3s;
+}
+.e-t-tabs .e-t-item:hover {
+	color: #ff0000;
+}
+.e-d-main {
+	position: absolute;
+	top: 35px;
+	left: 0;
+	right: 0;
+	bottom: 0;
+}
+
+.list-items {
+	padding: 10px 0;
+}
+.list-item {
+	display: flex;
+	height: 25px;
+	line-height: 25px;
+	padding-left: 10px;
+	font-size: 12px;
+	padding-bottom:5px;
+}
+.list-item-name {
+	width: 70px;
+	text-align: right;
+	display: inline-block;
+	margin-right: 10px;
+}
+.item-inp {
+	position: relative;
+	width: 60px;
+	border: 1px solid #ededed;
+}
+.item-inp-name {
+	position: relative;
+	width: 120px;
+	border: 1px solid #ededed;
+}
+
+/* 功能*/
+.features {
+	position: absolute;
+	bottom: 10px;
+	right: 350px;
+	z-index: 100;
+}
+.features-btns{
+	margin-bottom:10px;
+	text-align: right;
+}

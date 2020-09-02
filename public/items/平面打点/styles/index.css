@@ -1,0 +1,25 @@
+/** @format */
+#app{
+     
+}
+.btns {
+	position: absolute;
+    right: 20px;
+    bottom:10px;
+    z-index: 100;
+}
+.btns .btn{
+    margin-bottom: 10px;
+}
+.lines{
+    position: relative;
+    width:140px;
+    height: 200px;
+    color:#fff;
+    font-size:14px;
+    overflow: auto;
+}
+.lines div{
+     display: flex;
+    justify-content: space-between;
+}
