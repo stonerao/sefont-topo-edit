@@ -8,8 +8,6 @@ var zipl = require('../utils/zip');
 
 const config = require("../config.js");
 const fileUtils = require("../utils/file");
-const json = require('koa-json');
-
 router.prefix('/upload');
 // 保存数据 
 const baseUrl = path.join(config.__dirname, '/public/images/');
@@ -57,7 +55,7 @@ router.post('/loadImages', async (ctx, next) => {
     })
 })
 
-const initRotate = require('../files/rotate/createRotate');
+/* const initRotate = require('../files/rotate/createRotate');
 function wireFile(filePath, val) {
     fs.writeFile(filePath, val, { 'flag': 'a' }, function (err) {
         if (err) {
@@ -70,7 +68,7 @@ function wireFile(filePath, val) {
             }
         });
     });
-}
+} */
 // 下载包
 router.post('/downImages', async (ctx, next) => {
     const now = Date.now();
