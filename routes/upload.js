@@ -55,8 +55,8 @@ router.post('/loadImages', async (ctx, next) => {
     })
 })
 
-/* const initRotate = require('../files/rotate/createRotate');
-function wireFile(filePath, val) {
+const initRotate = require('../files/rotate/createRotate');
+/* function wireFile(filePath, val) {
     fs.writeFile(filePath, val, { 'flag': 'a' }, function (err) {
         if (err) {
             throw err;

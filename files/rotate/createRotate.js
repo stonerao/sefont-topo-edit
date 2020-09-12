@@ -48,8 +48,6 @@ return `function () {
             
         },
     };
-}
-    
-`
+}`
 }
 module.exports = InitRotate;
