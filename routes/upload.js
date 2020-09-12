@@ -87,7 +87,7 @@ router.post('/downImages', async (ctx, next) => {
     const zr = path.join(config.__dirname, '/public/down/zhuru' + now + '.js')
 
     // 生成代码注入
-    console.log(zr);
+    
     const vals = initRotate({
         data: body.configs,
         imgAssets: 'attach/img_' + now + "/",
@@ -109,7 +109,7 @@ router.post('/downImages', async (ctx, next) => {
             entry: [
                 imgUrl,
                 '/files/rotate/createInit.js',
-                // '/down/zhuru' + now + '.js'
+                '/down/zhuru' + now + '.js'
             ]
         }).then(() => {
             ctx.body = {
