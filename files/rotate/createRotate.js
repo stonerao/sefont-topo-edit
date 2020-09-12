@@ -1,4 +1,4 @@
-module.exports = function () {
+module.exports = function (opts) {
     return `function () {
     return {
         //组件初始化
