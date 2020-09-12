@@ -110,11 +110,9 @@ router.get('/es6', async (ctx, next) => {
 
   const buffer = fs.readFileSync(config.__dirname+"/public/es/es6.js");
   var input = 'const getMessage = () => "Hello World";';
-  console.log(1)
+ 
   var output = Babels.transform(String(buffer), { presets: ['es2015','env'] }).code;
-  console.log(String(buffer))
-  console.log(1)
-  console.log(output)
+ 
   ctx.body = {
     title: 'koa2 json'
   }

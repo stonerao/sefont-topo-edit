@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="UTF-8">
+	<title>template</title>
+	<link rel="stylesheet" href="./libs/element.css">
+	<link rel="stylesheet" href="./libs/index.css">
+	<script src="/libs/jquery.js"></script>
+	<script src="/libs/tween.js"></script>
+	<script src="/libs/stats.min.js"></script>
+	<script src="/libs/three_r98.js"></script>
+	<script src="js/assetsControls.js"></script>
+	<script src="js/effect.js"></script>
+
+	<script src="./libs/dat.gui.min.js"></script>
+	<script src="./libs/vue.min.js"></script>
+	<script src="./libs/element.js"></script>
+
+
+	<script>
+		var assetsUrl = './images/';
+		var config = {
+			stats: true, //是否显示左上角的性能监测  默认false
+			loading: true, //是否显示 loading ， 默认false
+			url:"",
+			scene: {
+				offset: [0, 0, 0]
+			},
+			background: {
+				color: '#1E1F22',
+				opacity: 1.0,
+
+			}, //背景色和透明度
+			camera: {
+				position: [0, 0, 344]
+			}, //相机视角和位置
+			controls: { //控制器
+				enablePan: false,
+				enableZoom: true,
+				enableRotate: true,
+			},
+			texture: {
+
+			}
+		};
+		var INT
+		function start() {
+			INT = new ROTATE_EFFECT();
+			INT.init('canvas-frame', config); //初始化
+			INT.render();
+			window.scene = INT.scene;
+		}
+	</script>
+</head>
+
+<body onload="start();">
+	<div id="canvas-frame"></div>
+
+
+	<!-- 业务 -->
+	<div id="app">
+		<div class="btns">
+			<div class="btn">
+				<el-button size="mini" @click="exports">导出</el-button>
+				<el-button size="mini" @click="addCom">添加</el-button>
+			</div>
+		</div>
+		<div class="itmes">
+			<div v-for="item in configs" ::key="item.id">
+				<span>{{item.type}}</span>
+				<span @click="editItem(item)">修改</span>
+				<span @click="deleItem(item, item.id)">删除</span>
+			</div>
+		</div>
+
+		<el-dialog :title="isAdd?'添加':'修改'" :visible.sync="visible" width="50%" top="5vh">
+			<el-form size="mini" label-width="80px">
+				<el-form-item label="组类型">
+					<el-select size="mini" placeholder="请选择需要添加的组" v-model="form.type">
+						<el-option v-for="item in types" :key="item.id" :label="item.name" :value="item.value">
+						</el-option>
+					</el-select>
+				</el-form-item>
+				<el-form-item label="大小" class="demo-input demo-input-suffix">
+					<el-input v-model="form.size.x" size="mini" placeholder="请输入长度"></el-input>
+					<el-input v-model="form.size.y" size="mini" placeholder="请输入宽度"></el-input>
+					<el-input v-model="form.size.z" size="mini" placeholder="请输入高度"></el-input>
+				</el-form-item>
+				<el-form-item label="Rotation" class="demo-input demo-input-suffix" v-if="form.type!='sprite'">
+					<el-input v-model="form.rotation.x" size="mini" placeholder="旋转X"></el-input>
+					<el-input v-model="form.rotation.y" size="mini" placeholder="旋转Y"></el-input>
+					<el-input v-model="form.rotation.z" size="mini" placeholder="旋转Z"></el-input>
+				</el-form-item>
+				<el-form-item label="Position" class="demo-input demo-input-suffix">
+					<el-input v-model="form.position.x" size="mini" placeholder="位置X"></el-input>
+					<el-input v-model="form.position.y" size="mini" placeholder="位置Y"></el-input>
+					<el-input v-model="form.position.z" size="mini" placeholder="位置Z"></el-input>
+				</el-form-item>
+				<el-form-item label="每帧运动" class="demo-input demo-input-suffix" v-if="form.type!='sprite'">
+					<el-input v-model="form.rotate.x" size="mini" placeholder="方向X"></el-input>
+					<el-input v-model="form.rotate.y" size="mini" placeholder="方向Y"></el-input>
+					<el-input v-model="form.rotate.z" size="mini" placeholder="方向Z"></el-input>
+				</el-form-item>
+				<el-form-item label="颜色" class=" demo-input-suffix">
+					<el-input style="width:400px" v-model="form.color" size="mini"
+						placeholder="颜色(rgb,rgba,16进制)  默认白色"></el-input>
+				</el-form-item>
+				<el-form-item label="图片" class=" demo-input-suffix">
+					<el-upload class="avatar-uploader" action="/upload/loadImages" :show-file-list="false"
+						:on-success="handleAvatarSuccess" :before-upload="beforeAvatarUpload">
+						<img v-if="form.img" :src="form.img" class="avatar">
+						<i v-else class="el-icon-plus avatar-uploader-icon"></i>
+					</el-upload>
+				</el-form-item>
+				<!-- 轨道属性 -->
+				<el-form-item label="轨道属性" v-if="form.type == 'track'">
+					<div class="demo-input demo-input-suffix">
+						<div class="matitems">
+							<span style="width:95px;display:inline-block;font-size: 13px;">字体大小 ：</span>
+							<el-input v-model="form.track.fontSize" size="mini" placeholder="字体大小"></el-input>
+						</div>
+						<div class="matitems">
+							<span style="width:95px;display:inline-block;font-size: 13px;">轨道半径 ：</span>
+							<el-input v-model="form.track.radius" size="mini" placeholder="轨道半径"></el-input>
+						</div>
+						<div class="matitems">
+							<span style="width:95px;display:inline-block;font-size:13px;">是否开启环线 ：</span>
+							<el-select size="mini" placeholder="是否开启环线" v-model="form.track.lineState">
+								<el-option label="开启" :value="true"> </el-option>
+								<el-option label="关闭" :value="false"> </el-option>
+							</el-select>
+						</div>
+						<div class="matitems" v-if=" form.track.lineState == true">
+							<span style="width:95px;display:inline-block;font-size: 13px;">线条颜色 ：</span>
+							<el-input v-model="form.track.lineColor" size="mini" placeholder="线条颜色"></el-input>
+						</div>
+						<div class="matitems">
+							<span style="width:95px;display:inline-block;font-size:13px;">是否链接中间 ：</span>
+							<el-select size="mini" placeholder="是否链接中间" v-model="form.track.lineCenter">
+								<el-option label="开启" :value="true"> </el-option>
+								<el-option label="关闭" :value="false"> </el-option>
+							</el-select>
+						</div>
+						<div class="matitems" v-if="form.track.lineCenter == true">
+							<span style="width:95px;display:inline-block;font-size:13px;">是否曲线 ：</span>
+							<el-select size="mini" placeholder="请选择需要添加的组" v-model="form.track.isCurve">
+								<el-option label="开启" :value="true"> </el-option>
+								<el-option label="关闭" :value="false"> </el-option>
+							</el-select>
+						</div>
+						<div class="matitems" v-if="form.track.isCurve == true && form.track.lineCenter == true">
+							<span style="width:95px;display:inline-block;font-size: 13px;">曲线高度 ：</span>
+							<el-input v-model="form.track.curveHeight" size="mini" placeholder="曲线高度"></el-input>
+						</div>
+
+						<!-- 飞线 -->
+						<div class="matitems" v-if="form.track.lineCenter">
+							<span style="width:95px;display:inline-block;font-size:13px;">是否跑点 ：</span>
+							<el-select size="mini" placeholder="请选择需要添加的组" v-model="form.track.isFly">
+								<el-option label="开启" :value="true"> </el-option>
+								<el-option label="关闭" :value="false"> </el-option>
+							</el-select>
+						</div>
+						<div class="matitems" v-if="form.track.isFly == true && form.track.lineCenter">
+							<span style="width:95px;display:inline-block;font-size: 13px;">跑点颜色 ：</span>
+							<el-input v-model="form.track.flyColor" size="mini" placeholder="跑点颜色"></el-input>
+						</div>
+						<div class="matitems" v-if="form.track.isFly == true && form.track.lineCenter">
+							<span style="width:95px;display:inline-block;font-size: 13px;">跑点速度 ：</span>
+							<el-input v-model="form.track.flySpeed" size="mini" placeholder="跑点速度"></el-input>
+						</div>
+						<div class="matitems" v-if="form.track.isFly == true && form.track.lineCenter">
+							<span style="width:95px;display:inline-block;font-size: 13px;">跑点密度 ：</span>
+							<el-input v-model="form.track.flyDpi" size="mini" placeholder="跑点密度"></el-input>
+						</div>
+						<div class="matitems" v-if="form.track.isFly == true && form.track.lineCenter">
+							<span style="width:95px;display:inline-block;font-size: 13px;">跑点粒子大小 ：</span>
+							<el-input v-model="form.track.flySize" size="mini" placeholder="跑点粒子大小"></el-input>
+						</div>
+
+
+					</div>
+				</el-form-item>
+				<el-form-item label="轨道数据" v-if="form.type == 'track'">
+					<el-input type="textarea" :rows="2" placeholder="数据以逗号隔开，例如： 张三,李四,王麻子" v-model="chilData">
+					</el-input>
+				</el-form-item>
+
+				<el-form-item label="材质属性">
+					<div class="demo-input demo-input-suffix">
+						<div v-for="item in form.material" :key="item.name" class="matitems">
+							<span style="width:95px;display:inline-block;font-size: 13px;">{{item.name}} ：</span>
+							<el-select size="mini" placeholder="请选择需要添加的组" v-model="item.value">
+								<el-option v-for="(val,i) in item.values" :key="i" :label="val.name" :value="val.value">
+								</el-option>
+							</el-select>
+						</div>
+					</div>
+				</el-form-item>
+				<el-form-item>
+					<el-button type="primary" @click="onSubmit" v-if="isAdd">立即创建</el-button>
+					<el-button type="primary" @click="editItemEffect" v-else>立即修改</el-button>
+					<el-button @click="visible=false">取消</el-button>
+				</el-form-item>
+			</el-form>
+		</el-dialog>
+	</div>
+</body>
+<script src="./index.js"></script>
+
+</html>

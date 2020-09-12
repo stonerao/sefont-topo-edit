@@ -10,6 +10,7 @@ const index = require('./routes/index')
 const users = require('./routes/users')
 const topos = require('./routes/topo')
 const zips = require('./routes/zip')
+const upload = require('./routes/upload')
 
 /* gzip压缩配置 start */
 const compress = require('koa-compress');
@@ -47,9 +48,7 @@ app.use(views(__dirname + '/views', {
 // logger
 app.use(async (ctx, next) => {
   // const start = new Date()
-  await next()
-  /* const ms = new Date() - start
-  console.log(`${ctx.method} ${ctx.url} - ${ms}ms`); */
+  await next() 
   if (parseInt(ctx.status) === 404) {
     const components = [];
     const paths = decodeURI(ctx.request.url);
@@ -80,6 +79,7 @@ app.use(async (ctx, next) => {
 app.use(index.routes(), index.allowedMethods())
 app.use(users.routes(), users.allowedMethods())
 app.use(topos.routes(), topos.allowedMethods())
+app.use(upload.routes(), upload.allowedMethods())
 app.use(zips.routes(), zips.allowedMethods())
 
 // error-handling
