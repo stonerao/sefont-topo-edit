@@ -1,7 +1,5 @@
-function InitRotate(opts) {
-    // 传递 图片zip包名， 执行方法名， 大小\
-    
-return `function () {
+module.exports = function () {
+    return `function () {
     return {
         //组件初始化
         init: function (options) {
@@ -30,7 +28,6 @@ return `function () {
                     
                 }
             };
-
             var INT = new ROTATE_EFFECT();
 			INT.init(cont_id, config); //初始化
             INT.render();
@@ -48,6 +45,4 @@ return `function () {
             
         },
     };
-}`
-}
-module.exports = InitRotate;
+}`};
