@@ -56,19 +56,19 @@ router.post('/loadImages', async (ctx, next) => {
 })
 
 const initRotate = require('../files/rotate/createRotate');
-function wireFile(filePath, val) {
-    fs.writeFile(filePath, val, { 'flag': 'a' }, function (err) {
-        if (err) {
-            throw err;
-        }
-        // 写入成功后读取测试
-        fs.readFile(filePath, 'utf-8', function (err, data) {
-            if (err) {
-                throw err;
-            }
-        });
-    });
-}
+// function wireFile(filePath, val) {
+//     fs.writeFile(filePath, val, { 'flag': 'a' }, function (err) {
+//         if (err) {
+//             throw err;
+//         }
+//         // 写入成功后读取测试
+//         fs.readFile(filePath, 'utf-8', function (err, data) {
+//             if (err) {
+//                 throw err;
+//             }
+//         });
+//     });
+// }
 // 下载包
 router.post('/downImages', async (ctx, next) => {
     const now = Date.now();
@@ -93,7 +93,7 @@ router.post('/downImages', async (ctx, next) => {
         imgs: names,
         camera: JSON.parse(body.camera) || { x: 0, z: 0, y: 0 }
     })
-    wireFile(zr, vals);
+    // wireFile(zr, vals);
     // 压缩JS文件 
     // 压缩图片
     const imgUrl = '/down/img_' + now + '.zip'
