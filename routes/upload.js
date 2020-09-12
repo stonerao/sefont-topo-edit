@@ -89,14 +89,13 @@ router.post('/downImages', async (ctx, next) => {
     const zr = path.join(config.__dirname, '/public/down/zhuru' + now + '.js')
 
     // 生成代码注入
-    const vals = initRotate({
+    /* const vals = initRotate({
         data: body.configs,
         imgAssets: 'attach/img_' + now + "/",
         imgs: names,
         camera: JSON.parse(body.camera) || { x: 0, z: 0, y: 0 }
     })
-    wireFile(zr, vals)
-
+    wireFile(zr, vals); */
 
     // 压缩JS文件 
     // 压缩图片
@@ -112,7 +111,7 @@ router.post('/downImages', async (ctx, next) => {
             entry: [
                 imgUrl,
                 '/files/rotate/createInit.js',
-                '/down/zhuru' + now + '.js'
+                // '/down/zhuru' + now + '.js'
             ]
         }).then(() => {
             ctx.body = {
