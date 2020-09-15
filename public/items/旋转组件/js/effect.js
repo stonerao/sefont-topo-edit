@@ -233,6 +233,28 @@ var ROTATE_EFFECT = function () {
 
 		return mesh;
 	}
+	// 添加平面 层
+	function addBall(Config) {
+		// const map = new THREE.TextureLoader().load(Config.map);
+		const colors = getColorArr(Config.color);
+		const _config = {
+			// map: map,
+			color: colors[0],
+			opacity: colors[1],
+			transparent: true,
+		};
+		if (Config.img) {
+			const map = new THREE.TextureLoader().load(df_Config.url+Config.img);
+			_config.map = map;
+		}
+		const material = new THREE.MeshBasicMaterial(_config);
+
+		// const geometry = new THREE.PlaneGeometry(Config.size.x, Config.size.y);
+		const geometry = new THREE.SphereBufferGeometry(Config.size.x, 32, 32)
+		let mesh = new THREE.Mesh(geometry, material);
+
+		return mesh;
+	}
 	// 添加精灵
 	function addSprite(Config) {
 		// const map = new THREE.TextureLoader().load(Config.map);
@@ -402,6 +424,8 @@ var ROTATE_EFFECT = function () {
 				break;
 			case "sprite":
 				mesh = addSprite(Config);
+			case "ball":
+				mesh = addBall(Config);
 				break;
 			case "track":
 				if (!thm.flyInit && Config.track.isFly) {

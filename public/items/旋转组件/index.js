@@ -81,9 +81,14 @@ var VM = new Vue({
                 id: 1
             },
             {
+                name: "球体",
+                value: "ball",
+                id: 2
+            },
+            {
                 name: "轨道",
                 value: "track",
-                id: 2
+                id: 3
             }
         ], // 组件类型
         trackConfig: {
