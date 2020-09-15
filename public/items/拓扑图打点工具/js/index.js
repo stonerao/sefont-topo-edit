@@ -2,11 +2,11 @@
  * 页面逻辑
  */
 var parms = {
-    style: 4,
+    style: 1,
     speed: 1,
-    size: 12,
-    color: '#ff0000',
-    length: 1,
+    size: 2,
+    color: '#ffffff',
+    length: 100,
     dpi: 1
 }
 var fun = {
