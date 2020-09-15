@@ -2,11 +2,11 @@
  * 页面逻辑
  */
 var parms = {
-    style: 1,
+    style: 4,
     speed: 1,
-    size: 1,
+    size: 12,
     color: '#ff0000',
-    length: 100,
+    length: 1,
     dpi: 1
 }
 var fun = {
@@ -17,7 +17,7 @@ var fun = {
 }
 var gui = new dat.GUI();
 gui.addColor(parms, 'color').name('颜色');
-gui.add(parms, 'style', [1, 2, 3]).name('线条样式');
+gui.add(parms, 'style', [1, 2, 3, 4]).name('线条样式');
 gui.add(parms, 'speed', 0.1, 10, 0.1).name('速度');
 gui.add(parms, 'size', 1, 20, 0.5).name('大小');
 gui.add(parms, 'dpi', 0.1, 10, 0.1).name('线条密度');
@@ -40,6 +40,12 @@ var VM = new Vue({
         color: '#ff0000',
         importVisible: false,
         importText: '',
+        imageUrl: '',
+        imageUrls: [],
+        selectVisible: false,
+        selectImgsIds:'',
+        currId:null,
+        uploadVisible:false,
         imgBase64: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAABuUlEQVRYR82XPy8EURTFf6fWUlD5k9ALhYLQkkgUJAql6HwFfAQqG6VCQiGR0BIKCaK3ibUVBSX1lSfzZGd3ZmdnZ2Z3XzLF5N177pm59913rkixzGweWAFmgIHgcQifwXMPnEu6aRVWSYZmNghsAevAeJJ9sF8GToCSpI9mPk0JmNkusAkMtRi43uwdOJLkcCJXLAEzuwVm2wxc73YnaS4KK5KAmbmc9ucU3MN8SXJ1E1oNBMzsDRjOObiHq0oaqcUOETCzU2C1oOAe9kzSmn/5JxAU3E7BwT38ni/MPwLBUXvKUO1pebvTMeWOqCfgjkmnvj70FzyBV2A07WdktK9IGpOZLQKXGcHadV9yBA6DVtsuSBa/kiPwAExnQcng++gIFNl4krhVHYFvoC/JsqD9n54g0PUUdL0I94HtgnKcBHvgasDpvOsky4L2F3wrfkmh9/LiUpY00TOXkVO+3buOA03QySs5LEh8UnNWwnG1ElLIUaK0CEXsyTQo4zhZXkR3bFDEjlWzwSRPhRxSwrGyvD5pXR3NagrTD6cbKXRjBTjOPJxG/BGnH5eByZjx/Bm4kHTVarv8BfUiqvAfUSxCAAAAAElFTkSuQmCC'
     },
     methods: {
@@ -63,20 +69,31 @@ var VM = new Vue({
             INT.quitFlyLine();
         },
         exports() {
+
             const data = INT.saveLine();
-            console.log(data);
+            let _data = JSON.parse(data);
+            _data.forEach(x=>{
+                if (x.img) { 
+                    const t = x.img.split("/");
+                    x.img= t.pop();
+                }
+            })
+            
+            _data = JSON.stringify(_data);
+
             $.ajax({
                 url: '/downFly',
                 type: "POST",
                 dataType: 'json',
                 data: {
-                    data: data,
+                    data: _data,
                     width: this.width,
                     height: this.height,
                     ...parms,
                     img: this.imgBase64
                 },
                 success: function (data) {
+                    console.log(data);
                     var state = confirm('已导出，数据已打印在控制台，是否还需要下载');
                     if (state) {
                         window.open(data.url);
@@ -85,6 +102,27 @@ var VM = new Vue({
             });
 
             localStorage.setItem("lineData", data);
+
+            const imgs = INT.LineMange.lines.filter(x => x.img).map(x => x.img);
+            console.log(imgs)
+            if(imgs.length > 0) {
+                $.ajax({
+                    url: '/upload/fiyDownImg',
+                    type: "POST",
+                    dataType: 'json',
+                    data: {
+                        data: imgs, 
+                    },
+                    success: function (data) {
+                        console.log(data);
+                         setTimeout(() => {
+                             if (data.code == 200) {
+                                 window.open(data.url);
+                             }
+                         }, 1500);
+                    }
+                });
+            }
 
         },
         imports() {
@@ -133,8 +171,7 @@ var VM = new Vue({
                 .then(_ => {
                     done();
                 })
-                .catch(_ => { });
-
+                .catch(_ => { }); 
         },
         importsData() {
             try {
@@ -146,17 +183,53 @@ var VM = new Vue({
                 this.$message.error('数据错误');
                 console.error(err);
             }
+        },
+        uploadImg(item) { 
+            this.currId = item.id;
+            this.selectVisible = true
+        },
+        upload() {
+
+        },
+        uploadhandleClose() {
+            this.$confirm('确认关闭？')
+                .then(_ => {
+                    done();
+                })
+                .catch(_ => { });
+        },
+        handleAvatarSuccess(data) {
+            this.imageUrl = data.url;
+            this.imageUrls.push(this.imageUrl)
+        },
+        submitImg(){
+            const img = this.imageUrls[this.selectImgsIds]
+           
+            for (let i = 0; i < INT.LineMange.lines.length; i++) {
+                const element = INT.LineMange.lines[i];
+                if (element.id == this.currId){
+                    element.img = img; 
+                    console.log(INT.LineMange.lines[i])
+                }
+            }
+            this.selectVisible = false;
+
+            setTimeout(()=>{
+                INT.viewLine(parms);
+            },1000)
         }
     },
     mounted() {
         var state = localStorage.getItem("state");
-        if (state != 'true') {
-            alert('一直按照ctrl点击则可生成线条，松开则结束！')
+            if (state != 'true') {
+                alert('一直按照ctrl点击则可生成线条，松开则结束！')
             localStorage.setItem("state", true);
         }
     },
     watch: {
-
+        selectVisible(){
+             
+        }
     }
 })
 function getBase64(url, callback) {

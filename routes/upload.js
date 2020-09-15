@@ -54,6 +54,32 @@ router.post('/loadImages', async (ctx, next) => {
         }
     })
 })
+router.post('/fiyDownImg', async (ctx, next) => {
+
+    const body = ctx.request.body;
+ 
+    const now = Date.now();
+    const files = []; 
+    if (body.data && Array.isArray(body.data)) {
+        files.push(...body.data);
+    }
+
+    const zr = path.join(config.__dirname, '/public/down/zhuru' + now + '.js')
+
+    const imgUrl = '/down/img_' + now + '.zip'
+    await zipl.zips({
+        output: path.join(config.__dirname, '/public' + imgUrl),
+        entry: files
+    }).then(async (e) => {
+        ctx.body = {
+            code: 200,
+            url: imgUrl
+        }
+    })
+
+
+    
+})
 
 const initRotate = require('../files/rotate/createRotate');
 function wireFile(filePath, val) {

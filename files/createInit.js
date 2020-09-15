@@ -13,6 +13,7 @@ function initJS(data = [],opts) {
             var config = {
                 stats: false, //是否显示左上角的性能监测  默认false
                 loading: true, //是否显示 loading ， 默认false
+                assets:"",
                 scene: {
                     offset: [0, 0, 0]
                 },

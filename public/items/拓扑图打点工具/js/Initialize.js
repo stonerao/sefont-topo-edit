@@ -181,6 +181,7 @@ var swiperInitialize = function () {
 			this.lines = this.lines.filter((elem) => elem.id != id);
 		},
 		get() {
+			console.log(this.lines);
 			return JSON.parse(JSON.stringify(this.lines));
 		},
 		restoreData(items) {
@@ -201,7 +202,7 @@ var swiperInitialize = function () {
 			return this.id++;
 		}
 	}
-
+	this.LineMange = LineMange;
 
 	var txues = {};
 	var width = 0;
@@ -274,7 +275,7 @@ var swiperInitialize = function () {
 
 		createLinkLine();
 
-		
+
 
 	}
 	// 创建点击连线
@@ -283,17 +284,17 @@ var swiperInitialize = function () {
 			color: 0xff0000,
 			transparent: true,
 			opacity: 0.9,
-			depthWrite:false
+			depthWrite: false
 		});
 
 		var geometry = new THREE.BufferGeometry();
 
 		thm.linkLine = new THREE.Line(geometry, material);
-		thm.scene.add(thm.linkLine);  
+		thm.scene.add(thm.linkLine);
 	}
 	// 更新点击连线
-	function updateLinkLine(points) { 
-		points.forEach(x=>{
+	function updateLinkLine(points) {
+		points.forEach(x => {
 			x.y = 2;
 		})
 		thm.linkLine.geometry.setFromPoints(points);
@@ -309,13 +310,13 @@ var swiperInitialize = function () {
 		var geometry = new THREE.BufferGeometry();
 
 		thm.helpLine = new THREE.LineSegments(geometry, material);
-		thm.scene.add(thm.helpLine); 
+		thm.scene.add(thm.helpLine);
 
 	}
 
 	function updateHelpLine(vec3) {
 		// .setFromPoints(points);
-		
+
 		const points = [];
 		const len = LineMange.current.data.length;
 		if (len > 0 && thm.keyType) {
@@ -420,9 +421,11 @@ var swiperInitialize = function () {
 		const { color, style, size, length, speed, dpi } = opts;
 		thm.flyGroup = new THREE.Group();
 
+		var txueLoader = new THREE.TextureLoader();
+
 		items.forEach((elem, i) => {
 			const points = thm.flyMesh.tranformPath(elem.data, dpi);
-			const flyMesh = thm.flyMesh.addFly({
+			const config = {
 				color: color,
 				curve: points,
 				width: size,
@@ -430,7 +433,11 @@ var swiperInitialize = function () {
 				speed: speed,
 				repeat: Infinity,
 				style: style
-			})
+			}
+			if (elem.img) {
+				config.texture = txueLoader.load(elem.img);
+			}
+			const flyMesh = thm.flyMesh.addFly(config)
 			thm.flyGroup.add(flyMesh)
 		})
 		thm.flyGroup.name = 'fly';
@@ -461,6 +468,7 @@ var swiperInitialize = function () {
 	}
 	thm.viewLine = (opts = {}) => {
 		var data = LineMange.get();
+
 		thm.initFly(data, {
 			style: opts.style || 1,
 			color: opts.color || '#5de9e2',
@@ -549,7 +557,7 @@ var swiperInitialize = function () {
 		df_Mouse.y = -(event.layerY / df_Height) * 2 + 1;
 		df_Raycaster.setFromCamera(df_Mouse, thm.camera);
 		var intersects = df_Raycaster.intersectObjects(ray_arr);
-		if (intersects.length != 0) { 
+		if (intersects.length != 0) {
 			updateHelpLine(new THREE.Vector3(
 				intersects[0].point.x,
 				1,
@@ -891,6 +899,7 @@ var swiperInitialize = function () {
 			})
 			geometry.addAttribute("position", new THREE.Float32BufferAttribute(position, 3));
 			geometry.addAttribute("u_index", new THREE.Float32BufferAttribute(u_index, 1));
+			console.log(u_index);
 			let mesh = new THREE.Points(geometry, material);
 			mesh.name = "fly";
 			mesh._flyId = this.flyId;
@@ -911,7 +920,7 @@ var swiperInitialize = function () {
 					shader = {
 						vertexshader: [
 							'uniform float size;uniform float time;uniform float u_len;attribute float u_index;varying float u_opacitys; ',
-							'void main() { if( u_index < time + u_len && u_index > time){float u_scale = 1.0 - (time + u_len - u_index) /u_len;',
+							'void main() { if( u_index < time + u_len && u_index > time){float u_scale = 1.0 - (time + u_len - u_index) / u_len;',
 							'u_opacitys = u_scale;vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);',
 							'gl_Position = projectionMatrix * mvPosition;gl_PointSize = size * u_scale * 300.0 / (-mvPosition.z);}} '
 						].join("\n"),
@@ -976,6 +985,36 @@ var swiperInitialize = function () {
 						].join("\n")
 					}
 					break;
+				case 4:
+					shader = {
+						vertexshader: [
+							'uniform float size;',
+							'uniform float time;',
+							'attribute float u_index;',
+							'varying float u_opacitys;',
+							'void main(){',
+							'u_opacitys = 0.0;',
+							'float _floor = floor(time);',
+							'if (u_index == _floor) { u_opacitys = 1.0; };',
+							'vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);',
+							'gl_Position = projectionMatrix * mvPosition;',
+							'gl_PointSize = size * 300.0 / (-mvPosition.z);}',
+						].join("\n"),
+						fragmentshader: [
+							'uniform sampler2D texture;',
+							'uniform float u_opacity;',
+							'uniform vec3 color;',
+							'uniform float isTexture;',
+							'varying float u_opacitys;',
+							'void main() {',
+							'vec4 u_color = vec4(color, u_opacity * u_opacitys);',
+							'if( isTexture != 0.0 ){',
+							'gl_FragColor = u_color * texture2D(texture, vec2(gl_PointCoord.x, 1.0 - gl_PointCoord.y));',
+							'}else{',
+							'gl_FragColor = u_color;}} ',
+						].join("\n")
+					}
+					break; 
 			}
 			return shader
 		}
