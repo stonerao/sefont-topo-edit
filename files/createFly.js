@@ -278,7 +278,7 @@ var ${opts.name} = function INIT_FLY() {
     */
     // 加载背景图 
     // 创建连线的线条
-
+    
     thm.lines = createLine();
     thm.scene.add(thm.lines);
   }
@@ -290,7 +290,7 @@ var ${opts.name} = function INIT_FLY() {
         length = opts.length,
         speed = opts.speed,
         dpi = opts.dpi;
-    var group = new THREE.Group();
+    thm.flyGroup = new THREE.Group();
     var txueLoader = new THREE.TextureLoader();
     items.forEach(function (elem, i) {
       var points = thm.flyMesh.tranformPath( elem.data, dpi);
@@ -308,9 +308,9 @@ var ${opts.name} = function INIT_FLY() {
 			}
       var flyMesh = thm.flyMesh.addFly(config);
       flyMesh._tid = elem.id;
-      group.add(flyMesh);
+      thm.flyGroup.add(flyMesh);
     });
-    thm.scene.add(group);
+    thm.scene.add(thm.flyGroup);
   };
 
   function createLine() {
