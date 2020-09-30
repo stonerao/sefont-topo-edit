@@ -13,11 +13,13 @@ var fun = {
     click: function () {
         parms.style = parseInt(parms.style)
         INT.viewLine(parms);
+        // INT.flyGroup.children[0].material.uniforms.color.value = new THREE.Color("#fff000")
+        
     }
 }
 var gui = new dat.GUI();
 gui.addColor(parms, 'color').name('颜色');
-gui.add(parms, 'style', [1, 2, 3, 4]).name('线条样式');
+gui.add(parms, 'style', [1, 2, 3, 4, 5]).name('线条样式');
 gui.add(parms, 'speed', 0.1, 10, 0.1).name('速度');
 gui.add(parms, 'size', 1, 20, 0.5).name('大小');
 gui.add(parms, 'dpi', 0.1, 10, 0.1).name('线条密度');

@@ -75,10 +75,7 @@ router.post('/fiyDownImg', async (ctx, next) => {
             code: 200,
             url: imgUrl
         }
-    })
-
-
-    
+    }) 
 })
 
 const initRotate = require('../files/rotate/createRotate');
@@ -110,10 +107,11 @@ router.post('/downImages', async (ctx, next) => {
             !names.includes(n) && names.push(n);
         })
     }
+    console.log(names)
     const zr = path.join(config.__dirname, '/public/down/zhuru' + now + '.js')
 
     // 生成代码注入
-    
+    console.log(zr)
     const vals = initRotate({
         data: body.configs,
         imgAssets: 'attach/img_' + now + "/",
@@ -124,12 +122,14 @@ router.post('/downImages', async (ctx, next) => {
     // 压缩JS文件 
     // 压缩图片
     const imgUrl = '/down/img_' + now + '.zip'
+    console.log(imgUrl)
     await zipl.zips({
         output: path.join(config.__dirname, '/public' + imgUrl),
         entry: files
     }).then(async (e) => {
         // 压缩文件  
         const fileNames = '/down/rotate_' + now + '.zip';
+        console.log(fileNames)
         await zipl.zips({
             output: path.join(config.__dirname, '/public' + fileNames),
             entry: [
@@ -138,6 +138,7 @@ router.post('/downImages', async (ctx, next) => {
                 '/down/zhuru' + now + '.js'
             ]
         }).then(() => {
+            console.log(1)
             ctx.body = {
                 code: 200,
                 url: fileNames

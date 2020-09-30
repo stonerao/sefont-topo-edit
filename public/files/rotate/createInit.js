@@ -932,11 +932,6 @@ var ROTATE_EFFECT = function () {
                 thm.parentCont.html(thm.container);
 
                 try {
-                    InitFbx();
-                } catch (err) {
-                    console.log("缺少加载FBX文件");
-                }
-                try {
                     InitControls();
                 } catch (err) {
                     console.log("缺少Controls文件");
@@ -1106,7 +1101,7 @@ var ROTATE_EFFECT = function () {
         thm.renderer.domElement.addEventListener('mousemove', onDocumentMouseMove, false);
         thm.renderer.domElement.addEventListener('mousedown', onDocumentMouseDown, false);
     }
-    thm.animateArray = [];
+    thm.animateArray = []; // 一直运行里面的材质  time+dt
     thm.rotateArray = [];
     thm.eventArray = [];
     function init3DMesh(opts) {
@@ -1134,6 +1129,28 @@ var ROTATE_EFFECT = function () {
         const material = new THREE.MeshBasicMaterial(_config);
 
         const geometry = new THREE.PlaneGeometry(Config.size.x, Config.size.y);
+        let mesh = new THREE.Mesh(geometry, material);
+
+        return mesh;
+    }
+    // 添加平面 层
+    function addBall(Config) {
+        // const map = new THREE.TextureLoader().load(Config.map);
+        const colors = getColorArr(Config.color);
+        const _config = {
+            // map: map,
+            color: colors[0],
+            opacity: colors[1],
+            transparent: true,
+        };
+        if (Config.img) {
+            const map = new THREE.TextureLoader().load(df_Config.url + Config.img);
+            _config.map = map;
+        }
+        const material = new THREE.MeshBasicMaterial(_config);
+
+        // const geometry = new THREE.PlaneGeometry(Config.size.x, Config.size.y);
+        const geometry = new THREE.SphereBufferGeometry(Config.size.x, 32, 32)
         let mesh = new THREE.Mesh(geometry, material);
 
         return mesh;
@@ -1185,7 +1202,7 @@ var ROTATE_EFFECT = function () {
         });
 
 
-        const lineColors = getColorArr(Config.color);
+        const lineColors = getColorArr(track.lineColor);
         const lineMat = new THREE.LineBasicMaterial({
             color: lineColors[0],
             transparent: true,
@@ -1230,10 +1247,8 @@ var ROTATE_EFFECT = function () {
                 const _line = new THREE.Line(lineGeo, lineMat);
                 lineGroup.add(_line);
 
-                if (!thm.flyInit) continue;
-                const flyPoint = thm.flyInit.tranformPath(points, track.flyDpi);
-
-                if (track.isFly) {
+                if (!thm.flyInit && track.isFly) {
+                    const flyPoint = thm.flyInit.tranformPath(points, track.flyDpi);
                     var flyMesh = thm.flyInit.addFly({
                         color: track.flyColor,
                         curve: flyPoint,
@@ -1246,19 +1261,22 @@ var ROTATE_EFFECT = function () {
                     lineGroup.add(flyMesh)
                 }
 
+
             }
 
 
 
             if (elem.name == '') continue;
 
-            const textMap = addSpriteText(elem.name, track.fontSize);
+            const textMap = addSpriteText(elem.name, parseFloat(track.fontSize), track.fontGap);
             const textMat = new THREE.SpriteMaterial({
                 map: textMap.textur,
                 color: new THREE.Color(color)
             });
             const title = addTrackSprite(textMat);
             title.scale.set(textMap.width / 4, textMap.height / 4, textMap.height / 4);
+            title.center.set(0.5, 1);
+            title.position.y = size.y / 8 + parseFloat(track.fontTop);
             child.add(title);
         }
 
@@ -1279,10 +1297,69 @@ var ROTATE_EFFECT = function () {
         return group;
     }
 
+
     function addTrackSprite(mat, size) {
         const sprite = new THREE.Sprite(mat);
 
         return sprite;
+    }
+
+    // 上升粒子
+    function addRisePoint(Config) {
+        const size = Config.size.x;
+        const pointConf = Config.point;
+        const color = Config.color;
+
+        const colors = getColorArr(color);
+        const map = new THREE.TextureLoader().load(df_Config.url + Config.img)
+
+        const position = [];
+        const index = [];
+        const loading = [];
+
+        const pnumber = pointConf.number;
+        const cnumber = pointConf.cnumber || 3;
+
+        for (let i = 0; i < pnumber; i++) {
+            const load = THREE.Math.randFloat(0, 1);;
+            const x = THREE.Math.randFloat(0 - pointConf.rangeX / 2, pointConf.rangeX / 2);
+            const y = THREE.Math.randFloat(0 - pointConf.rangeY / 2, pointConf.rangeY / 2);
+            const z = THREE.Math.randFloat(0 - pointConf.rangeZ / 2, pointConf.rangeZ / 2);
+            const number = cnumber;
+            // 判断当前是否在镜头周围 
+
+            for (let c = 0; c < number; c++) {
+                index.push(c);
+                loading.push(load);
+                position.push(x, y, z);
+            }
+        }
+        // 
+        const geometry = new THREE.BufferGeometry();
+        geometry.addAttribute("position", new THREE.Float32BufferAttribute(position, 3));
+        geometry.addAttribute("v_index", new THREE.Float32BufferAttribute(index, 1));
+        geometry.addAttribute("v_loading", new THREE.Float32BufferAttribute(loading, 1));
+
+        const material = new THREE.ShaderMaterial({
+            uniforms: {
+                u_color: { value: colors[0] },
+                u_opacity: { value: colors[1] },
+                u_height: { value: pointConf.rangeY / 2 },
+                u_minheight: { value: 0 - pointConf.rangeY / 2 },
+                time: { value: 0 },
+                u_map: { value: map },
+                u_speed: { value: pointConf.speed },
+                u_size: { value: size }
+            },
+            transparent: true,
+            depthWrite: false,
+            // blending: THREE.AdditiveBlending,
+            vertexShader: PointShader.vertexShader,
+            fragmentShader: PointShader.fragmentShader,
+        });
+        const point = new THREE.Points(geometry, material);
+
+        return point;
     }
 
 
@@ -1308,6 +1385,9 @@ var ROTATE_EFFECT = function () {
             case "sprite":
                 mesh = addSprite(Config);
                 break;
+            case "ball":
+                mesh = addBall(Config);
+                break;
             case "track":
                 if (!thm.flyInit && Config.track.isFly) {
                     thm.flyInit = new InitFly({
@@ -1315,6 +1395,10 @@ var ROTATE_EFFECT = function () {
                     });
                 }
                 mesh = addTrack(Config);
+                break;
+            case "risePoint":
+                mesh = addRisePoint(Config);
+                thm.animateArray.push(mesh);
                 break;
         }
         if (!mesh) return false;
@@ -1343,8 +1427,8 @@ var ROTATE_EFFECT = function () {
             if (child[i]._id == id) {
                 thm.group.remove(child[i])
             }
-
         }
+        thm.animateArray = thm.animateArray.filter(x => x._id != id);
     }
     thm.disposeEffect = function () {
         thm.group && thm.group.parent.remove(thm.group);
@@ -1353,8 +1437,10 @@ var ROTATE_EFFECT = function () {
         thm.scene.add(thm.group);
     }
 
-    function addSpriteText(name, fontSize) {
+    function addSpriteText(name, fontSize, gap) {
         // 生成map
+        const _names = name.split("/n");
+
         const canvas = document.createElement('canvas');
 
         const ctx = canvas.getContext("2d");
@@ -1362,16 +1448,19 @@ var ROTATE_EFFECT = function () {
         ctx.font = "bold " + fontSize + "px 微软雅黑";
         const tw = ctx.measureText(name).width;
         var width = THREE.Math.ceilPowerOfTwo(tw);
-        var height = THREE.Math.ceilPowerOfTwo(fontSize);
+        var height = THREE.Math.ceilPowerOfTwo(fontSize) * _names.length + (gap * _names.length - 1);
+        var bh = THREE.Math.ceilPowerOfTwo(fontSize);
+        canvas.width = width;
+        canvas.height = height;
 
-        canvas.width = THREE.Math.ceilPowerOfTwo(width);
-        canvas.height = THREE.Math.ceilPowerOfTwo(height);
+        _names.forEach((n, i) => {
+            ctx.font = "bold " + fontSize + "px 微软雅黑";
+            ctx.fillStyle = "#fff";
+            ctx.textAlign = "left";
+            const ws = ctx.measureText(n).width;
+            ctx.fillText(n, (width - ws) / 2, fontSize + fontSize * i + i * gap);
+        })
 
-        ctx.font = "bold " + fontSize + "px 微软雅黑";
-        ctx.fillStyle = "#fff";
-        ctx.textAlign = "left";
-        const ws = ctx.measureText(name).width;
-        ctx.fillText(name, (width - ws) / 2, height / 2 + fontSize / 3);
 
         const textur = new THREE.Texture(canvas);
         textur.needsUpdate = true;
@@ -1423,17 +1512,35 @@ var ROTATE_EFFECT = function () {
     }
 
     function animation(dt) {
+        if (dt > 1) return false;
         if (thm.group) {
             thm.group.children.forEach((child) => {
                 if (!child._isRotate) return false;
-                const rotate = child._rotate;
-                child.rotation.x += dt * rotate.x;
-                child.rotation.y += dt * rotate.y;
-                child.rotation.z += dt * rotate.z;
+                if (child._type == 'track') {
+                    const rotate = child._rotate;
+                    child.children.forEach(tc => {
+                        tc.rotation.x += dt * rotate.x;
+                        tc.rotation.y += dt * rotate.y;
+                        tc.rotation.z += dt * rotate.z;
+                    })
+                } else {
+                    const rotate = child._rotate;
+                    child.rotation.x += dt * rotate.x;
+                    child.rotation.y += dt * rotate.y;
+                    child.rotation.z += dt * rotate.z;
+                }
             })
         }
         if (thm.flyInit) {
             thm.flyInit.animation(dt);
+        }
+
+        if (thm.animateArray) {
+            thm.animateArray.forEach((child) => {
+                if (child.material && child.material.uniforms.time) {
+                    child.material.uniforms.time.value += dt;
+                }
+            })
         }
     }
     //-
@@ -1928,5 +2035,56 @@ var ROTATE_EFFECT = function () {
             }
             return _arr;
         }
+    }
+
+    const PointShader = {
+        vertexShader: `
+            uniform float time;
+            uniform float u_size;
+            uniform float u_speed;
+            uniform float u_height;
+            uniform float u_minheight;
+            uniform float u_opacity;
+            
+            attribute float v_index;
+            attribute float v_loading;
+
+            varying float v_opacity;
+	        float lerp (float x,float y,float t ) {
+
+				return ( 1.0 - t ) * x + t * y;
+
+			}
+            void main() { 
+                float u_time = u_speed * time;
+                v_opacity = 1.0; 
+                if (time < 3.0) {
+                    v_opacity = 0.0;
+                } else if (time < 10.0) {
+                    v_opacity = time / 10.0;
+                }
+                float _index = mod(v_loading + u_time, 1.0);
+                float y = lerp(u_minheight, u_height, _index) + u_size * 0.5 * v_index;
+                float v_size = (v_index / 3.0) * (u_size / 2.0) + u_size / 2.0;
+                vec3 v_position = vec3(position.x, y, position.z);
+
+                vec4 mvPosition = modelViewMatrix * vec4(v_position, 1.0);
+				gl_Position = projectionMatrix * mvPosition;
+                gl_PointSize = v_size * 300.0 / (-mvPosition.z);
+            
+            }
+        `,
+        fragmentShader: `
+            uniform sampler2D u_map;
+            uniform vec3 u_color;
+
+            varying float v_opacity;
+            
+            void main() { 
+                vec4 v_color = vec4(u_color, v_opacity);
+                vec4 ture = texture2D(u_map, vec2(gl_PointCoord.x, 1.0 - gl_PointCoord.y));
+                gl_FragColor = v_color * ture;
+            }
+            `
     }
 };

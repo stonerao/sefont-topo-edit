@@ -13,6 +13,8 @@ const _form = (id) => {
         color: "",// 颜色 
         track: {
             fontSize: 14,
+            fontGap: 5,
+            fontTop: 0,
             radius: 120,
             lineState: false,
             lineColor: "rgba(255,255,255,1)",
@@ -25,6 +27,14 @@ const _form = (id) => {
             flyDpi: 1,
             flySize: 22,
             isClick: false,// 是否接受被点击
+        },
+        point: {
+            speed: 0.1, // 速度
+            number: 100, // 数量
+            cnumber: 3, // 数量
+            rangeX: 500,
+            rangeY: 500,
+            rangeZ: 500,
         },
         material: [
             {
@@ -89,6 +99,11 @@ var VM = new Vue({
                 name: "轨道",
                 value: "track",
                 id: 3
+            },
+            {
+                name: "上升粒子",
+                value: "risePoint",
+                id: 4
             }
         ], // 组件类型
         trackConfig: {
@@ -98,12 +113,17 @@ var VM = new Vue({
             radius: 128,
             lineCenter: true
         },
-        chilData: "张三,李四,李四,李四,李四",
+        chilData: "张三/n王麻子,李四,李四,李四,李四",
         form: _form(0),
-        formUUID: 0
+        formUUID: 0,
+        exporeVisible: false,
+        textarea:''
 
     },
     methods: {
+        onExport() {
+
+        },
         handleClose(done) {
             this.$confirm('确认关闭？')
                 .then(_ => {
@@ -157,6 +177,12 @@ var VM = new Vue({
                 opts['track'] = track;
             }
 
+            if (opts['type'] == "risePoint") {
+                const point = this.form.point;  
+
+                opts['point'] = point;
+            }
+
             return opts
         },
         onSubmit() {
@@ -164,6 +190,7 @@ var VM = new Vue({
             if (this.form.type == "track" && !this.chilData) return false;
             this.configs.push(JSON.parse(JSON.stringify(this.form)));
             const opts = this.handelConfig(this.form);
+            console.log(opts)
             INT.addEffect(opts);
             this.visible = false;
         },

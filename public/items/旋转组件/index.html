@@ -23,13 +23,13 @@
 		var config = {
 			stats: true, //是否显示左上角的性能监测  默认false
 			loading: true, //是否显示 loading ， 默认false
-			url:"",
+			url: "",
 			scene: {
 				offset: [0, 0, 0]
 			},
 			background: {
 				color: '#1E1F22',
-				opacity: 1.0,
+				opacity: 0.0,
 
 			}, //背景色和透明度
 			camera: {
@@ -63,6 +63,7 @@
 		<div class="btns">
 			<div class="btn">
 				<el-button size="mini" @click="exports">导出</el-button>
+				<el-button size="mini" @click="exporeVisible = true">导入</el-button>
 				<el-button size="mini" @click="addCom">添加</el-button>
 			</div>
 		</div>
@@ -74,7 +75,7 @@
 			</div>
 		</div>
 
-		<el-dialog :title="isAdd?'添加':'修改'" :visible.sync="visible" width="50%" top="5vh">
+		<el-dialog :title="isAdd?'添加':'修改'" :visible.sync="visible" width="50%" top="5vh" :before-close="handleClose">
 			<el-form size="mini" label-width="80px">
 				<el-form-item label="组类型">
 					<el-select size="mini" placeholder="请选择需要添加的组" v-model="form.type">
@@ -117,11 +118,19 @@
 				<el-form-item label="轨道属性" v-if="form.type == 'track'">
 					<div class="demo-input demo-input-suffix">
 						<div class="matitems">
-							<span style="width:95px;display:inline-block;font-size: 13px;">字体大小 ：</span>
+							<span class="child-span">字体大小 ：</span>
 							<el-input v-model="form.track.fontSize" size="mini" placeholder="字体大小"></el-input>
 						</div>
 						<div class="matitems">
-							<span style="width:95px;display:inline-block;font-size: 13px;">轨道半径 ：</span>
+							<span class="child-span">间隔(多行) ：</span>
+							<el-input v-model="form.track.fontGap" size="mini" placeholder="字体大小"></el-input>
+						</div>
+						<div class="matitems">
+							<span class="child-span">字体Top ：</span>
+							<el-input v-model="form.track.fontTop" size="mini" placeholder="字体Top"></el-input>
+						</div>
+						<div class="matitems">
+							<span class="child-span">轨道半径 ：</span>
 							<el-input v-model="form.track.radius" size="mini" placeholder="轨道半径"></el-input>
 						</div>
 						<div class="matitems">
@@ -132,7 +141,7 @@
 							</el-select>
 						</div>
 						<div class="matitems" v-if=" form.track.lineState == true">
-							<span style="width:95px;display:inline-block;font-size: 13px;">线条颜色 ：</span>
+							<span class="child-span">线条颜色 ：</span>
 							<el-input v-model="form.track.lineColor" size="mini" placeholder="线条颜色"></el-input>
 						</div>
 						<div class="matitems">
@@ -150,7 +159,7 @@
 							</el-select>
 						</div>
 						<div class="matitems" v-if="form.track.isCurve == true && form.track.lineCenter == true">
-							<span style="width:95px;display:inline-block;font-size: 13px;">曲线高度 ：</span>
+							<span class="child-span">曲线高度 ：</span>
 							<el-input v-model="form.track.curveHeight" size="mini" placeholder="曲线高度"></el-input>
 						</div>
 
@@ -163,19 +172,19 @@
 							</el-select>
 						</div>
 						<div class="matitems" v-if="form.track.isFly == true && form.track.lineCenter">
-							<span style="width:95px;display:inline-block;font-size: 13px;">跑点颜色 ：</span>
+							<span class="child-span">跑点颜色 ：</span>
 							<el-input v-model="form.track.flyColor" size="mini" placeholder="跑点颜色"></el-input>
 						</div>
 						<div class="matitems" v-if="form.track.isFly == true && form.track.lineCenter">
-							<span style="width:95px;display:inline-block;font-size: 13px;">跑点速度 ：</span>
+							<span class="child-span">跑点速度 ：</span>
 							<el-input v-model="form.track.flySpeed" size="mini" placeholder="跑点速度"></el-input>
 						</div>
 						<div class="matitems" v-if="form.track.isFly == true && form.track.lineCenter">
-							<span style="width:95px;display:inline-block;font-size: 13px;">跑点密度 ：</span>
+							<span class="child-span">跑点密度 ：</span>
 							<el-input v-model="form.track.flyDpi" size="mini" placeholder="跑点密度"></el-input>
 						</div>
 						<div class="matitems" v-if="form.track.isFly == true && form.track.lineCenter">
-							<span style="width:95px;display:inline-block;font-size: 13px;">跑点粒子大小 ：</span>
+							<span class="child-span">跑点粒子大小 ：</span>
 							<el-input v-model="form.track.flySize" size="mini" placeholder="跑点粒子大小"></el-input>
 						</div>
 
@@ -186,11 +195,39 @@
 					<el-input type="textarea" :rows="2" placeholder="数据以逗号隔开，例如： 张三,李四,王麻子" v-model="chilData">
 					</el-input>
 				</el-form-item>
+				<el-form-item label="上升粒子" v-if="form.type == 'risePoint'">
+					<div class="demo-input demo-input-suffix">
+						<div class="matitems">
+							<span class="child-span">粒子速度 ：</span>
+							<el-input v-model="form.point.speed" size="mini" placeholder="粒子速度"></el-input>
+						</div>
+						<div class="matitems">
+							<span class="child-span">粒子总数量 ：</span>
+							<el-input v-model="form.point.number" size="mini" placeholder="粒子总数量"></el-input>
+						</div>
+						<div class="matitems">
+							<span class="child-span">粒子单个数量 ：</span>
+							<el-input v-model="form.point.cnumber" size="mini" placeholder="粒子单个数量"></el-input>
+						</div>
+						<div class="matitems">
+							<span class="child-span">范围X ：</span>
+							<el-input v-model="form.point.rangeX" size="mini" placeholder="范围X"></el-input>
+						</div>
+						<div class="matitems">
+							<span class="child-span">范围Y ：</span>
+							<el-input v-model="form.point.rangeY" size="mini" placeholder="范围Y"></el-input>
+						</div>
+						<div class="matitems">
+							<span class="child-span">范围Z ：</span>
+							<el-input v-model="form.point.rangeZ" size="mini" placeholder="范围Z"></el-input>
+						</div>
+					</div>
+				</el-form-item>
 
 				<el-form-item label="材质属性">
 					<div class="demo-input demo-input-suffix">
 						<div v-for="item in form.material" :key="item.name" class="matitems">
-							<span style="width:95px;display:inline-block;font-size: 13px;">{{item.name}} ：</span>
+							<span class="child-span">{{item.name}} ：</span>
 							<el-select size="mini" placeholder="请选择需要添加的组" v-model="item.value">
 								<el-option v-for="(val,i) in item.values" :key="i" :label="val.name" :value="val.value">
 								</el-option>
@@ -205,7 +242,14 @@
 				</el-form-item>
 			</el-form>
 		</el-dialog>
+		<el-dialog title="导入" :visible.sync="exporeVisible" width="50%" top="5vh" :before-close="handleClose"> 
+		<el-input style="margin-bottom:15px"  :rows="5" type="textarea"   placeholder="请输入内容" v-model="textarea">
+		</el-input> 
+	 
+		<el-button type="primary" @click="onExport">立即创建</el-button>
+		</el-dialog>
 	</div>
+
 </body>
 <script src="./index.js"></script>
 

@@ -307,6 +307,7 @@ var ${opts.name} = function INIT_FLY() {
 				config.texture = txueLoader.load(df_Config.assets + elem.img);
 			}
       var flyMesh = thm.flyMesh.addFly(config);
+      flyMesh._tid = elem.id;
       group.add(flyMesh);
     });
     thm.scene.add(group);
@@ -828,7 +829,39 @@ var ${opts.name} = function INIT_FLY() {
 							'gl_FragColor = u_color;}} ',
 						].join("\\n")
 					}
-					break; 
+          break;
+          case 5:
+					shader = {
+						vertexshader: [
+							'uniform float size; ',
+							'uniform float time; ',
+							'uniform float u_len; ',
+							'attribute float u_index;',
+							'varying float u_opacitys;',
+							'void main(){',
+							'if( u_index < time + u_len && u_index > time){',
+							'float u_scale = (u_index - time) / ((time + u_len) - time);',
+							'u_opacitys = 0.1 * u_scale;',
+							'if (u_index < time + u_len && u_index > time + u_len - 1.9) { u_opacitys = 1.0; }',
+							'vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);',
+							'gl_Position = projectionMatrix * mvPosition;',
+							'gl_PointSize = size * 300.0 / (-mvPosition.z);}}',
+						].join("\\n"),
+						fragmentshader: [
+							'uniform sampler2D texture;',
+							'uniform float u_opacity;',
+							'uniform vec3 color;',
+							'uniform float isTexture;',
+							'varying float u_opacitys;',
+							'void main() {',
+							'vec4 u_color = vec4(color,u_opacity * u_opacitys);',
+							'if( isTexture != 0.0 ){',
+							'gl_FragColor = u_color * texture2D(texture, vec2(gl_PointCoord.x, 1.0 - gl_PointCoord.y));',
+							'}else{',
+							'gl_FragColor = u_color;}} ',
+						].join("\\n")
+					}
+					break;
         }
 
         return shader;

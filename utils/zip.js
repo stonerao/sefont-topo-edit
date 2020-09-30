@@ -15,15 +15,15 @@ const zips = async (opts) => {
 
     archive.pipe(output);
 
-    opts.entry.forEach(elem => {
+     opts.entry.forEach(elem => {
+        console.log(elem)
         var file = path + '/public' + elem;
         const names = file.split("/").pop();
 
         archive.append(fs.createReadStream(file), { name: names });
-    })
-
+    }) 
+    
     await archive.finalize();
-
 }
 module.exports = {
     zips: zips
