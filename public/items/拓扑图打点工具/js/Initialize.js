@@ -436,7 +436,8 @@ var swiperInitialize = function () {
 			}
 			if (elem.img) {
 				config.texture = txueLoader.load(elem.img);
-			} 
+			}
+			
 			const flyMesh = thm.flyMesh.addFly(config);
 			flyMesh._tid = elem.id;
 			thm.flyGroup.add(flyMesh)

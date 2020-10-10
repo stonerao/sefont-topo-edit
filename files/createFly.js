@@ -294,8 +294,9 @@ var ${opts.name} = function INIT_FLY() {
     var txueLoader = new THREE.TextureLoader();
     items.forEach(function (elem, i) {
       var points = thm.flyMesh.tranformPath( elem.data, dpi);
+      var _color = elem.color != undefined ? new THREE.Color(elem.color) : color;
       const config = {
-				color: color,
+				color: _color,
 				curve: points,
 				width: size,
 				length: length,
